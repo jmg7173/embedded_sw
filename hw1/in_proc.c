@@ -38,7 +38,7 @@ void input_main(int pid_parent, int shmid){
     unsigned char prev_push[MAX_BUTTON];
     int push_bf_size = sizeof(push_sw_buff);
     int is_changed = 0;
-    int cur_len = 0;
+    int len = 0;
 
     if((fd_key=open(DEVICE_KEY, O_RDONLY|O_NONBLOCK))==-1){
         printf("%s is not valid device.\n", DEVICE_KEY);
@@ -93,9 +93,8 @@ void input_main(int pid_parent, int shmid){
                     sprintf(buffer, "push");
                     for(i = 0; i<MAX_BUTTON; ++i){
                         if(push_sw_buff[i] == KEY_RELEASE){
-                            cur_len = strlen(buffer);
-                            sprintf(buffer+cur_len, 
-                                    " %d", i+1);
+                            len = strlen(buffer);
+                            sprintf(buffer+len, " %d", i+1);
                         }
                     }
                     strcpy(shmaddr, buffer);
@@ -106,4 +105,8 @@ void input_main(int pid_parent, int shmid){
         }
         usleep(100000);
     }
+    // back key pressed
+    shmdt(shmaddr);
+    close(fd_key);
+    close(fd_push);
 }
