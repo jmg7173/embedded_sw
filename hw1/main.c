@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <string.h>
 #include <signal.h>
@@ -8,6 +9,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/mman.h>
+
+#include "in_proc.h"
 
 void handler(int dummy){
 }
@@ -21,13 +24,13 @@ int main(){
     key_in = ftok("/etc/passwd", 1);
     key_out = ftok("/etc/passwd", 2);
 
-    shmid_in = shmget(key_in, 1024, IPC_CREATE|0644);
+    shmid_in = shmget(key_in, 1024, IPC_CREAT|0644);
     if(shmid_in == -1){
         perror("shmget btw in and main failed.\n");
         exit(1);
     }
 
-    shmid_out = shmget(key_out, 1024, IPC_CREATE|0644);
+    shmid_out = shmget(key_out, 1024, IPC_CREAT|0644);
     if(shmid_out == -1){
         perror("shmget btw main and out failed.\n");
         exit(1);
@@ -69,15 +72,7 @@ int main(){
     }
     else{
         // Input process
-        void* shmaddr = shmat(shmid_in, NULL, 0);
-        printf("[Input] send message to shared memory.\n");
-        strcpy(shmaddr, "Button 1 clicked");
-        sleep(2);
-        pid_parent = getppid();
-        kill(pid_parent, SIGUSR1);
-        system("ipcs");
-        shmdt(shmaddr);
-        printf("[Input] finished.\n");
+        input_main(getppid(), shmid_in);
     }
 
     if(pid_in && pid_out){
