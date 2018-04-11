@@ -1,6 +1,6 @@
 CC=arm-none-linux-gnueabi-gcc
 CFLAGS=-static -o
-SOURCES=main.c
+SOURCES=main.c in_proc.c led.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE = hw1_20141578.out
 
