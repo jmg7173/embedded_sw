@@ -3,15 +3,17 @@
 #define KEY_RELEASE 0
 #define KEY_PRESS 1
 #define BUFF_SIZE 64
+#define BUFFER 1024
 #define MAX_BUTTON 9
 
 #define DEVICE_KEY "/dev/input/event0"
 #define DEVICE_PUSH "/dev/fpga_push_switch"
-enum Keys={
+enum Keys{
     vol_up=115, 
     vol_dn=114, 
     prog=116, 
     back=158, 
     home=102
 };
+void input_main(int pid_parent, int shmid); 
 #endif

@@ -1,36 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+#include <unistd.h>
 
-#include <fcntl.h>
 #include <dirent.h>
-#include <terminos.h>
+#include <fcntl.h>
+#include <termios.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/select.h>
-#include <sys/time.h>
 #include <sys/ioctl.h>
+#include <sys/ipc.h>
+#include <sys/select.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
 
-#include <linut/input.h>
+#include <linux/input.h>
 
-void input_main(int parent, int shmid){
+#include "in_proc.h"
+
+void input_main(int pid_parent, int shmid){
     // Read key home/back/prog/vol+/vol- and push switch
     void* shmaddr = shmat(shmid, NULL, 0);
+    char buffer[BUFFER] = {0};
     
     struct input_event ev[BUFF_SIZE];
     int fd_key, fd_push;
     int rd, size = sizeof (struct input_event);
     int i;
 
-    int key_code = 0, value;
+    int value;
+    enum Keys key_code = 0;
     unsigned char push_sw_buff[MAX_BUTTON];
     unsigned char prev_push[MAX_BUTTON];
     int push_bf_size = sizeof(push_sw_buff);
-    int status = false;
+    int is_changed = 0;
+    int cur_len = 0;
 
     if((fd_key=open(DEVICE_KEY, O_RDONLY|O_NONBLOCK))==-1){
         printf("%s is not valid device.\n", DEVICE_KEY);
@@ -46,7 +54,7 @@ void input_main(int parent, int shmid){
         if((rd = read(fd_key, ev, size * BUFF_SIZE)) >= size){
             // When previous key toggled
             if(key_code == ev[0].code && 
-                    value = 1 - ev[0].value){
+                    value == 1 - ev[0].value){
                 // If it is KEY RELEASE, do nothing.
                 if(value == KEY_RELEASE)
                     printf("Key released.\n");
@@ -55,15 +63,47 @@ void input_main(int parent, int shmid){
             }
             key_code = ev[0].code;
             value = ev[0].value;
-            // TODO: work when button press
+            if(value == KEY_PRESS){
+                // write at shared memory and signal to main
+                if(key_code == back){
+                    strcpy(shmaddr, "end");
+                    kill(pid_parent, SIGUSR1);
+                    break;
+                }
+                sprintf(buffer,"key %d",key_code);
+                strcpy(shmaddr, buffer);
+                kill(pid_parent, SIGUSR1);
+            }
         }
         else{ // Read Push button
             rd = read(fd_push, &push_sw_buff, push_bf_size);
-            // Check Button Released
+            // Check Button status change 
+            is_changed = 0;
             for(i = 0; i<MAX_BUTTON; ++i){
+                if(prev_push[i] != push_sw_buff[i] &&
+                        push_sw_buff[i] == KEY_PRESS){
+                    is_changed = 1;
+                }
                 prev_push[i] = push_sw_buff[i];
-                // TODO: button press recognition
+                if(prev_push[i] == push_sw_buff[i] &&
+                        push_sw_buff[i] == KEY_PRESS){
+                    push_sw_buff[i] = KEY_RELEASE;
+                }
+                if(is_changed){
+                    sprintf(buffer, "push");
+                    for(i = 0; i<MAX_BUTTON; ++i){
+                        if(push_sw_buff[i] == KEY_RELEASE){
+                            cur_len = strlen(buffer);
+                            sprintf(buffer+cur_len, 
+                                    " %d", i+1);
+                        }
+                    }
+                    strcpy(shmaddr, buffer);
+                    kill(pid_parent, SIGUSR1);
+                }
             }
+
         }
+        usleep(100000);
     }
 }
