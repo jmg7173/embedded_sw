@@ -12,7 +12,7 @@ void led_write(int value){
     int fd, i;
     unsigned long *fpga_addr = 0;
     unsigned char *led_addr = 0;
-    if(value < 0 || data > 255){
+    if(value < 0 || value > 255){
         printf("Invalid range!\n");
         exit(1);
     }
@@ -33,7 +33,7 @@ void led_write(int value){
 
     led_addr = (unsigned char*)((void*)fpga_addr + LED_ADDR);
 
-    *led_addr = data;
+    *led_addr = value;
 
     munmap(led_addr, 4096);
     close(fd);
@@ -42,6 +42,8 @@ void led_write(int value){
 int led_read(){
     int fd;
     int data = 0;
+    unsigned long *fpga_addr = 0;
+    unsigned char *led_addr = 0;
 
     fd = open("/dev/mem", O_RDONLY | O_SYNC);
     if(fd < 0){
