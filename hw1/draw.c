@@ -1,3 +1,4 @@
 #include "draw.h"
-void draw(char* buf, char* job, char is_time){
+char mod_draw(char* buf, char* job, char is_time){
+    return 0;
 }

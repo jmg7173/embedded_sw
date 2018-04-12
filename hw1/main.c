@@ -54,28 +54,8 @@ int main(){
             perror("fork error on making output process.\n");
         }
         if(!pid_out){
-            output_main(getppid(), shmid_out);
             // Output process
-            void* shmaddr = shmat(shmid_out, NULL, 0);
-            char buf[1024];
-            pid_parent = getppid();
-            sigfillset(&mask);
-            sigdelset(&mask, SIGUSR2);
-            sigset(SIGUSR2, handler);
-            sigsuspend(&mask);
-
-            strcpy(buf, shmaddr);
-            printf("[Output] From main, %s received.\n", buf);
-            
-            char* switch_name = strtok(buf, " ");
-            int switch_num = atoi(strtok(NULL, " "));
-            char* operate = strtok(NULL, " ");
-            printf("%s %d %s. So LED %d turn on.\n",
-                    switch_name, switch_num,
-                    operate, switch_num);
-            
-            shmdt(shmaddr);
-            printf("[Output] finished.\n");
+            output_main(getppid(), shmid_out);
         }
     }
     else{

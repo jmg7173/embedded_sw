@@ -5,8 +5,8 @@ enum mod_type{
     COUNTER,
     EDITOR,
     DRAW
-}
+};
 
-void processing(char mod, char* buf, char* job, char is_time);
+char processing(char mod, char* buf, char* job, char is_time);
 
 #endif

@@ -1,3 +1,4 @@
 #include "editor.h"
-void editor(char* buf, char* job, char is_time){
+char mod_editor(char* buf, char* job, char is_time){
+    return 0;
 }

@@ -5,20 +5,16 @@
 #include "editor.h"
 #include "draw.h"
 
-void processing(char mod, char*buf, char* job, char is_time){
+char processing(char mod, char*buf, char* job, char is_time){
     switch(mod){
         case CLOCK:
-            clock(buf, job, is_time);
-            break;
+            return mod_clock(buf, job, is_time);
         case COUNTER:
-            counter(buf, job, is_time);
-            break;
+            return mod_counter(buf, job, is_time);
         case EDITOR:
-            editor(buf, job, is_time);
-            break;
+            return mod_editor(buf, job, is_time);
         case DRAW:
-            draw(buf, job, is_time);
-            break;
+            return mod_draw(buf, job, is_time);
         // TODO: EXTRA mod
     }
 }

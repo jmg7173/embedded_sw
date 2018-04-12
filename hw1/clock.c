@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <time.h>
 
 #include "clock.h"
@@ -6,18 +7,19 @@
 
 static int get_board_time();
 
-void clock(char* buf, char* job, char is_time){
+char mod_clock(char* buf, char* job, char is_time){
     static int timer = 0;
     static int mod_changing = 0;
     static int cur_time = -1;
-    static int modfied_time = -1;
+    static int modified_time = -1;
     static int led = 0b10000000;
+    char modified = 0;
     // Initialize once
     if(cur_time == -1){
         cur_time = get_board_time();
         sprintf(job, "2 led %d fnd %02d%02d",
                 led, cur_time/60, cur_time%60);
-        return;
+        return 1;
     }
     if(is_time){
         if(mod_changing){
@@ -25,6 +27,7 @@ void clock(char* buf, char* job, char is_time){
                 led = 0b00010000;
             led ^= 0b00110000;
             sprintf(job, "led %d", led);
+            modified = 1;
         }
         else{ // not mod changing
             timer++;
@@ -34,6 +37,7 @@ void clock(char* buf, char* job, char is_time){
                 cur_time %= 1440;
                 sprintf(job, "1 fnd %02d%02d",
                         cur_time/60, cur_time%60);
+                modified = 1;
             }
         }
     }
@@ -72,13 +76,17 @@ void clock(char* buf, char* job, char is_time){
                         led,
                         modified_time/60,
                         modified_time%60);
+                modified = 1;
             }
             else{
                 sprintf(job, "led %d fnd %02d%02d",
                         led, cur_time/60, cur_time%60);
+                modified = 1;
             }
         }
     }
+
+    return modified;
 }
 
 static int get_board_time(){
