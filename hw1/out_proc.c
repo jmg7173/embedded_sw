@@ -11,7 +11,6 @@
 #include "out_proc.h"
 
 #include "driver_helper.h"
-#include "led.h"
 
 static void write_to_device(char* key, char* value);
 
@@ -58,7 +57,7 @@ static void write_to_device(char* key, char* value){
         fnd_write(value);
     }
     else if(!strcmp(key, "led")){
-        led_write(atoi(value));
+        led_write(value);
     }
     else if(!strcmp(key, "lcd")){
         lcd_write(value);
@@ -67,5 +66,7 @@ static void write_to_device(char* key, char* value){
         dot_matrix_char(value);
     }
     else if(!strcmp(key, "draw")){
+        dot_matrix_draw(value);
     }
 }
+
