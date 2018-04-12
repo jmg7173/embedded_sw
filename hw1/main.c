@@ -12,6 +12,8 @@
 
 #include "in_proc.h"
 #include "mod_proc.h"
+#include "out_proc.h"
+
 #define MOD_NUM 4
 
 unsigned char signal_send = 0;
@@ -52,6 +54,7 @@ int main(){
             perror("fork error on making output process.\n");
         }
         if(!pid_out){
+            output_main(getppid(), shmid_out);
             // Output process
             void* shmaddr = shmat(shmid_out, NULL, 0);
             char buf[1024];
