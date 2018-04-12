@@ -35,10 +35,10 @@ void input_main(int pid_parent, int shmid){
     int value;
     enum Keys key_code = 0;
     unsigned char push_sw_buff[MAX_BUTTON];
-    unsigned char prev_push[MAX_BUTTON];
+    unsigned char prev_push[MAX_BUTTON] = {0};
     int push_bf_size = sizeof(push_sw_buff);
     int is_changed = 0;
-    int len = 0;
+    int len = 0, flag;
 
     if((fd_key=open(DEVICE_KEY, O_RDONLY|O_NONBLOCK))==-1){
         printf("%s is not valid device.\n", DEVICE_KEY);
@@ -80,29 +80,33 @@ void input_main(int pid_parent, int shmid){
             // Check Button status change 
             is_changed = 0;
             for(i = 0; i<MAX_BUTTON; ++i){
+                flag = 0;
                 if(prev_push[i] != push_sw_buff[i] &&
                         push_sw_buff[i] == KEY_PRESS){
                     is_changed = 1;
                 }
-                prev_push[i] = push_sw_buff[i];
                 if(prev_push[i] == push_sw_buff[i] &&
                         push_sw_buff[i] == KEY_PRESS){
+                    flag = 1;
+                }
+                prev_push[i] = push_sw_buff[i];
+                if(flag)
                     push_sw_buff[i] = KEY_RELEASE;
-                }
-                if(is_changed){
-                    sprintf(buffer, "push");
-                    for(i = 0; i<MAX_BUTTON; ++i){
-                        if(push_sw_buff[i] == KEY_RELEASE){
-                            len = strlen(buffer);
-                            sprintf(buffer+len, " %d", i+1);
-                        }
-                    }
-                    strcpy(shmaddr, buffer);
-                    kill(pid_parent, SIGUSR1);
-                }
             }
-
+            if(is_changed){
+                sprintf(buffer, "push");
+                for(i = 0; i<MAX_BUTTON; ++i){
+                    if(push_sw_buff[i] == KEY_PRESS){
+                        len = strlen(buffer);
+                        sprintf(buffer+len, " %d", i+1);
+                    }
+                }
+                strcpy(shmaddr, buffer);
+                kill(pid_parent, SIGUSR1);
+            }
         }
+
+
         usleep(100000);
     }
     // back key pressed

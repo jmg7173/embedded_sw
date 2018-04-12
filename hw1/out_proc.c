@@ -35,7 +35,7 @@ void output_main(int pid_parent, int shmid){
         sigsuspend(&mask);
         
         strcpy(buf, shmaddr);
-        
+        printf("[OUTPUT]I got %s\n", buf);
         sscanf(buf, "%s", key);
         if(!strcmp(key, "end"))
             break;

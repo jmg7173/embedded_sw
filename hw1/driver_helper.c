@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <sys/mann.h>
+#include <sys/mman.h>
 
 #include "driver_helper.h"
 
@@ -51,7 +51,7 @@ void fnd_write(char* value){
     for(i = 0; i < 4; ++i){
         data[i] -= 0x30;
     }
-    dev = open(FND_DEVICE, O_WRONLY);
+    dev = open(FPGA_FND_DEVICE, O_WRONLY);
     if (dev < 0){
         printf("Device open error: %s\n", FPGA_FND_DEVICE);
         exit(1);
@@ -64,18 +64,19 @@ void fnd_write(char* value){
 }
 
 void lcd_write(char* value){
-    int dev;
+    int dev, str_size;
     unsigned char string[32];
 
-    dev = open(FPGA_TEXT_LCD_DEVICE, WRONLY);
+    dev = open(FPGA_TEXT_LCD_DEVICE, O_WRONLY);
     if(dev < 0){
         printf("Device open error: %s\n",
                 FPGA_TEXT_LCD_DEVICE);
         exit(1);
     }
+
     str_size = strlen(value);
     if(str_size > MAX_LCD_LEN){
-        printf("Too long text at lcd.\n");
+        printf("Too long text at lcd. size: %d\n", str_size);
         exit(1);
     }
     write(dev, value, str_size);
@@ -127,8 +128,8 @@ void dot_matrix_draw(char* value){
         printf("Invalid dot matrix draw string!\n");
         exit(1);
     }
-    for(int i = 0; i < 10; i++){
-        for(int j = 0; j < 7; j++){
+    for(i = 0; i < 10; i++){
+        for(j = 0; j < 7; j++){
             if(value[i*7+j] == '1'){
                 picture[i] |= (1 << (6-j));
             }
@@ -145,9 +146,17 @@ void dot_matrix_draw(char* value){
 }
 
 void init_device(){
+    printf("Init led...");
     led_write("0");
+    printf("OK!\n");
+    printf("Init fnd...");
     fnd_write("0000");
+    printf("OK!\n");
+    printf("Init lcd...");
     lcd_write(empty_lcd);
+    printf("OK!\n");
+    printf("Init dot matrix...");
     dot_matrix_char("blank");
+    printf("OK!\n");
 }
 

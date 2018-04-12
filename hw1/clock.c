@@ -2,7 +2,6 @@
 #include <time.h>
 
 #include "clock.h"
-#include "led.h"
 #include "push_helper.h"
 
 static int get_board_time();
@@ -26,7 +25,7 @@ char mod_clock(char* buf, char* job, char is_time){
             if(led == 128)
                 led = 0b00010000;
             led ^= 0b00110000;
-            sprintf(job, "led %d", led);
+            sprintf(job, "1 led %d", led);
             modified = 1;
         }
         else{ // not mod changing
@@ -44,7 +43,6 @@ char mod_clock(char* buf, char* job, char is_time){
     else{ // When push button pressed
         int btn_a, btn_b;
         char is_multi;
-
         get_push_id(buf, &btn_a, &btn_b, &is_multi);
         if(!is_multi){
             switch(btn_a){
@@ -72,14 +70,14 @@ char mod_clock(char* buf, char* job, char is_time){
                     break;
             }
             if(mod_changing){
-                sprintf(job, "led %d fnd %02d%02d",
+                sprintf(job, "2 led %d fnd %02d%02d",
                         led,
                         modified_time/60,
                         modified_time%60);
                 modified = 1;
             }
             else{
-                sprintf(job, "led %d fnd %02d%02d",
+                sprintf(job, "2 led %d fnd %02d%02d",
                         led, cur_time/60, cur_time%60);
                 modified = 1;
             }
