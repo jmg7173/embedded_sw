@@ -85,7 +85,7 @@ void lcd_write(char* value){
 void dot_matrix_char(char* value){
     // Implement only 1 or A
     int dev, idx;
-    int str_size;
+    int str_size, len;
 
     dev = open(FPGA_DOT_DEVICE, O_WRONLY);
     if(dev < 0){
@@ -93,16 +93,25 @@ void dot_matrix_char(char* value){
         exit(1);
     }
 
-    if(value[0] == 'A'){
-        idx = value[0] - 'A';
-        str_size = sizeof(fpga_char[idx])
-        write(dev, fpga_char[idx], str_size);
+    len = strlen(value);
+    if(len > 1){
+        if(!strcmp(value, "empty")){
+            str_size = sizeof(fpga_blank);
+            write(dev, fpga_blank, str_size);
+        }
     }
+    else{
+        if(value[0] == 'A'){
+            idx = value[0] - 'A';
+            str_size = sizeof(fpga_char[idx]);
+            write(dev, fpga_char[idx], str_size);
+        }
 
-    else if(value[0] == '1'){
-        idx = value[0] - '0';
-        str_size = sizeof(fpga_num[idx]);
-        write(dev, fpga_num[idx], str_size);
+        else if(value[0] == '1'){
+            idx = value[0] - '0';
+            str_size = sizeof(fpga_num[idx]);
+            write(dev, fpga_num[idx], str_size);
+        }
     }
 
     close(dev);
@@ -133,5 +142,12 @@ void dot_matrix_draw(char* value){
     }
     write(dev, picture, sizeof(picture));
     close(dev);
+}
+
+void init_device(){
+    led_write("0");
+    fnd_write("0000");
+    lcd_write(empty_lcd);
+    dot_matrix_char("blank");
 }
 

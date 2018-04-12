@@ -17,7 +17,7 @@ char mod_clock(char* buf, char* job, char is_time){
     // Initialize once
     if(cur_time == -1){
         cur_time = get_board_time();
-        sprintf(job, "2 led %d fnd %02d%02d",
+        sprintf(job, "3 init 0 led %d fnd %02d%02d",
                 led, cur_time/60, cur_time%60);
         return 1;
     }

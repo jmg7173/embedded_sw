@@ -45,7 +45,6 @@ void output_main(int pid_parent, int shmid){
         for(i = 0; i < write_num; ++i){
             sscanf(buf + skip, "%s %s", key, value);
             skip += strlen(key) + strlen(value) + 2;
-            // TODO: write to device
             write_to_device(key, value);
         }
     }
@@ -68,5 +67,7 @@ static void write_to_device(char* key, char* value){
     else if(!strcmp(key, "draw")){
         dot_matrix_draw(value);
     }
+    else if(!strcmp(key, "init")){
+        init_device();
+    }
 }
-
