@@ -1,6 +1,6 @@
 CC=arm-none-linux-gnueabi-gcc
 CFLAGS=-static -o
-SOURCES=main.c in_proc.c clock.c counter.c draw.c driver_helper.c editor.c out_proc.c mod_proc.c push_helper.c
+SOURCES=main.c in_proc.c clock.c counter.c draw.c device_helper.c editor.c out_proc.c mod_proc.c push_helper.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE = hw1_20141578.out
 
@@ -10,7 +10,7 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(OBJECTS) $(CFLAGS) $@
 
 .c.o:
-	$(CC) -c $< $(CFLAGS) $@
+	$(CC) -c $< 
 
 clean:
-	rm -f $(EXECUTABLE) $(OBJECTS)
+	rm -f *.o $(EXECUTABLE)

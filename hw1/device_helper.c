@@ -7,7 +7,7 @@
 
 #include <sys/mman.h>
 
-#include "driver_helper.h"
+#include "device_helper.h"
 
 void led_write(char* value){
     int fd, i, data;

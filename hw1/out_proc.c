@@ -10,7 +10,7 @@
 
 #include "out_proc.h"
 
-#include "driver_helper.h"
+#include "device_helper.h"
 
 static void write_to_device(char* key, char* value);
 

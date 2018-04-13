@@ -39,7 +39,7 @@ char mod_draw(char* buf, char* job, char is_time, char chg){
                 data_at_cursor = '0';
                 cursor = 0;
                 flicking = 1;
-                cnt = 0;
+                cnt = -1;
                 break;
 
             case 2: // Up
