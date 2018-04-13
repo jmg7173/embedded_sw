@@ -13,7 +13,9 @@ char mod_clock(char* buf, char* job, char is_time){
     static int modified_time = -1;
     static int led = 0b10000000;
     char modified = 0;
+
     // Initialize once
+    // TODO: When mod change?
     if(cur_time == -1){
         cur_time = get_board_time();
         sprintf(job, "3 init 0 led %d fnd %02d%02d",
@@ -44,46 +46,48 @@ char mod_clock(char* buf, char* job, char is_time){
         int btn_a, btn_b;
         char is_multi;
         get_push_id(buf, &btn_a, &btn_b, &is_multi);
-        if(!is_multi){
-            switch(btn_a){
-                case 1:
-                    mod_changing = 1-mod_changing;
-                    if(!mod_changing){
-                        cur_time = modified_time;
-                        led = 0b10000000;
-                    }
-                    else{
-                        modified_time = cur_time;
-                        led = 0b00100000;
-                    }
-                    break;
-                case 2:
-                    modified_time = get_board_time();
-                    break;
-                case 3:
-                    modified_time =
-                        (modified_time + 60) % 1440;
-                    break;
-                case 4:
-                    modified_time =
-                        (modified_time + 1) % 1440;
-                    break;
-            }
-            if(mod_changing){
-                sprintf(job, "2 led %d fnd %02d%02d",
-                        led,
-                        modified_time/60,
-                        modified_time%60);
-                modified = 1;
-            }
-            else{
-                sprintf(job, "2 led %d fnd %02d%02d",
-                        led, cur_time/60, cur_time%60);
-                modified = 1;
-            }
+        if(is_multi){
+            return 0;
+        }
+        switch(btn_a){
+            case 1:
+                mod_changing = 1-mod_changing;
+                if(!mod_changing){
+                    cur_time = modified_time;
+                    led = 0b10000000;
+                }
+                else{
+                    modified_time = cur_time;
+                    led = 0b00100000;
+                }
+                break;
+            case 2:
+                modified_time = get_board_time();
+                break;
+            case 3:
+                modified_time =
+                    (modified_time + 60) % 1440;
+                break;
+            case 4:
+                modified_time =
+                    (modified_time + 1) % 1440;
+                break;
+            default:
+                return 0;
+        }
+        if(mod_changing){
+            sprintf(job, "2 led %d fnd %02d%02d",
+                    led,
+                    modified_time/60,
+                    modified_time%60);
+            modified = 1;
+        }
+        else{
+            sprintf(job, "2 led %d fnd %02d%02d",
+                    led, cur_time/60, cur_time%60);
+            modified = 1;
         }
     }
-
     return modified;
 }
 
