@@ -16,7 +16,7 @@ void led_write(char* value){
 
     data = atoi(value);
     if(data < 0 || data > 255){
-        perror("Invalid range!");
+        fprintf(stderr, "Invalid range! data: %d", data);
         exit(1);
     }
     fd = open("/dev/mem", O_RDWR | O_SYNC);
@@ -113,7 +113,7 @@ void dot_matrix_char(char* value){
             write(dev, fpga_char[idx], str_size);
         }
 
-        else if(value[0] == '1'){
+        else if(value[0] >= '0' && value[0] <= '9'){
             idx = value[0] - '0';
             str_size = sizeof(fpga_num[idx]);
             write(dev, fpga_num[idx], str_size);
