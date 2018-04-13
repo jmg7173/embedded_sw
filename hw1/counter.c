@@ -28,7 +28,6 @@ char mod_counter(
     // Initialize when first run and mod change
     // Keep data when mod change
     if(numeric == -1 || chg){
-        printf("numeric: %d, chg: %d\n", numeric, chg);
         if(numeric == -1){
             numeric = 0;
             for(i = 0; i < 4; ++i)

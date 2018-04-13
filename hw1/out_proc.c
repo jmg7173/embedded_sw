@@ -35,7 +35,6 @@ void output_main(int pid_parent, int shmid){
         sigsuspend(&mask);
         
         strcpy(buf, shmaddr);
-        printf("[OUTPUT]I got %s\n", buf);
         sscanf(buf, "%s", key);
         if(!strcmp(key, "end"))
             break;
@@ -44,10 +43,15 @@ void output_main(int pid_parent, int shmid){
         skip = 2;
         for(i = 0; i < write_num; ++i){
             sscanf(buf + skip, "%s %s", key, value);
+            if(!strcmp(key, "lcd")){
+                sscanf(buf + skip, "%s %[^\n]", key, value);
+            }
             skip += strlen(key) + strlen(value) + 2;
             write_to_device(key, value);
+            value[0] = '\0';
         }
     }
+    write_to_device("init", "");
     shmdt(shmaddr);
 }
 

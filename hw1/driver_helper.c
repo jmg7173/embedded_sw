@@ -16,7 +16,7 @@ void led_write(char* value){
 
     data = atoi(value);
     if(data < 0 || data > 255){
-        printf("Invalid range!\n");
+        perror("Invalid range!");
         exit(1);
     }
     fd = open("/dev/mem", O_RDWR | O_SYNC);
@@ -29,7 +29,7 @@ void led_write(char* value){
             NULL, 4096, PROT_WRITE,
             MAP_SHARED, fd, FPGA_BASE_ADDRESS);
     if (fpga_addr == MAP_FAILED){
-        printf("mmap error!\n");
+        perror("mmap error!");
         close(fd);
         exit(1);
     }
@@ -53,33 +53,37 @@ void fnd_write(char* value){
     }
     dev = open(FPGA_FND_DEVICE, O_WRONLY);
     if (dev < 0){
-        printf("Device open error: %s\n", FPGA_FND_DEVICE);
+        fprintf(stderr, "Device open error: %s\n",
+                FPGA_FND_DEVICE);
         exit(1);
     }
     retval = write(dev, &data, 4);
     if(retval < 0){
-        printf("Write Error: %s\n", FPGA_FND_DEVICE);
+        fprintf(stderr, "Write Error: %s\n", FPGA_FND_DEVICE);
     }
     close(dev);
 }
 
 void lcd_write(char* value){
     int dev, str_size;
-    unsigned char string[32];
+    unsigned char string[MAX_LCD_LEN+1] = {0};
 
     dev = open(FPGA_TEXT_LCD_DEVICE, O_WRONLY);
     if(dev < 0){
-        printf("Device open error: %s\n",
+        fprintf(stderr, "Device open error: %s\n",
                 FPGA_TEXT_LCD_DEVICE);
         exit(1);
     }
 
     str_size = strlen(value);
+    strcpy(string, value);
+    memset(string+str_size, ' ', MAX_LCD_LEN-str_size);
     if(str_size > MAX_LCD_LEN){
-        printf("Too long text at lcd. size: %d\n", str_size);
+        fprintf(stderr, "Too long text at lcd. size: %d\n",
+                str_size);
         exit(1);
     }
-    write(dev, value, str_size);
+    write(dev, string, MAX_LCD_LEN);
     close(dev);
 }
 
@@ -90,13 +94,14 @@ void dot_matrix_char(char* value){
 
     dev = open(FPGA_DOT_DEVICE, O_WRONLY);
     if(dev < 0){
-        printf("Device open error: %s\n", FPGA_DOT_DEVICE);
+        fprintf(stderr, "Device open error: %s\n",
+                FPGA_DOT_DEVICE);
         exit(1);
     }
 
     len = strlen(value);
     if(len > 1){
-        if(!strcmp(value, "empty")){
+        if(!strcmp(value, "blank")){
             str_size = sizeof(fpga_blank);
             write(dev, fpga_blank, str_size);
         }
@@ -125,7 +130,7 @@ void dot_matrix_draw(char* value){
 
     len = strlen(value);
     if(len != 70){
-        printf("Invalid dot matrix draw string!\n");
+        perror("Invalid dot matrix draw string!");
         exit(1);
     }
     for(i = 0; i < 10; i++){
@@ -138,7 +143,8 @@ void dot_matrix_draw(char* value){
 
     dev = open(FPGA_DOT_DEVICE, O_WRONLY);
     if(dev < 0){
-        printf("Device open error: %s\n", FPGA_DOT_DEVICE);
+        fprintf(stderr, "Device open error: %s\n",
+                FPGA_DOT_DEVICE);
         exit(1);
     }
     write(dev, picture, sizeof(picture));
