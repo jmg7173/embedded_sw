@@ -19,6 +19,8 @@ char mod_clock(char* buf, char* job, char is_time, char chg){
     if(cur_time == -1 || chg){
         if(cur_time == -1)
             cur_time = get_board_time();
+        led = 0b10000000;
+        mod_changing = 0;
         sprintf(job, "3 init 0 led %d fnd %02d%02d",
                 led, cur_time/60, cur_time%60);
         return 1;
