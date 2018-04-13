@@ -4,6 +4,7 @@
 #include "counter.h"
 #include "editor.h"
 #include "draw.h"
+#include "binary_game.h"
 
 char processing(
         char mod,
@@ -21,6 +22,7 @@ char processing(
             return mod_editor(buf, job, is_time, chg);
         case DRAW:
             return mod_draw(buf, job, is_time, chg);
-        // TODO: EXTRA mod
+        case GAME:
+            return mod_game(buf, job, is_time, chg);
     }
 }

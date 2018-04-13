@@ -4,7 +4,8 @@ enum mod_type{
     CLOCK=0,
     COUNTER,
     EDITOR,
-    DRAW
+    DRAW,
+    GAME
 };
 
 char processing(

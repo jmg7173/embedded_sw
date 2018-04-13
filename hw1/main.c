@@ -14,7 +14,7 @@
 #include "mod_proc.h"
 #include "out_proc.h"
 
-#define MOD_NUM 4
+#define MOD_NUM 5
 
 unsigned char signal_send = 0;
 
