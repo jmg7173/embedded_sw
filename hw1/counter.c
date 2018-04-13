@@ -7,9 +7,15 @@ static void digit_increase(
         int numeric,
         int* num,
         char (*nums_char)[5],
-        int digit);
+        int digit
+);
 
-char mod_counter(char* buf, char* job, char is_time){
+char mod_counter(
+        char* buf,
+        char* job,
+        char is_time,
+        char chg
+){
     static int numeric = -1; // 0: 10s, 1: 8s, 2: 4s, 3: 2s
     static char nums_char[4][5] = {0};
     static int num = 0;
@@ -19,12 +25,15 @@ char mod_counter(char* buf, char* job, char is_time){
     int i;
     char is_multi;
 
-    // Initialize
-    if(numeric == -1){
-        numeric = 0;
-        for(i = 0; i < 4; ++i)
-            sprintf(nums_char[i], "%04d", 0); 
-
+    // Initialize when first run and mod change
+    // Keep data when mod change
+    if(numeric == -1 || chg){
+        printf("numeric: %d, chg: %d\n", numeric, chg);
+        if(numeric == -1){
+            numeric = 0;
+            for(i = 0; i < 4; ++i)
+                sprintf(nums_char[i], "%04d", 0); 
+        }
         sprintf(job, "3 init 0 led %d fnd %s",
                 led, nums_char[numeric]); 
         return 1;

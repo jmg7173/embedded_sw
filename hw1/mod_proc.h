@@ -7,6 +7,12 @@ enum mod_type{
     DRAW
 };
 
-char processing(char mod, char* buf, char* job, char is_time);
+char processing(
+        char mod,
+        char* buf,
+        char* job,
+        char is_time,
+        char chg
+);
 
 #endif

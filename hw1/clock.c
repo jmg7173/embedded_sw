@@ -6,7 +6,7 @@
 
 static int get_board_time();
 
-char mod_clock(char* buf, char* job, char is_time){
+char mod_clock(char* buf, char* job, char is_time, char chg){
     static int timer = 0;
     static int mod_changing = 0;
     static int cur_time = -1;
@@ -14,10 +14,11 @@ char mod_clock(char* buf, char* job, char is_time){
     static int led = 0b10000000;
     char modified = 0;
 
-    // Initialize once
-    // TODO: When mod change?
-    if(cur_time == -1){
-        cur_time = get_board_time();
+    // Initialize when first run and mod change
+    // When mod change, keep previous data
+    if(cur_time == -1 || chg){
+        if(cur_time == -1)
+            cur_time = get_board_time();
         sprintf(job, "3 init 0 led %d fnd %02d%02d",
                 led, cur_time/60, cur_time%60);
         return 1;
@@ -52,6 +53,7 @@ char mod_clock(char* buf, char* job, char is_time){
         switch(btn_a){
             case 1:
                 mod_changing = 1-mod_changing;
+                timer = 0;
                 if(!mod_changing){
                     cur_time = modified_time;
                     led = 0b10000000;

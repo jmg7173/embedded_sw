@@ -43,6 +43,8 @@ int main(){
         exit(1);
     }
 
+    // TODO: device ready test
+
     pid_in = fork();
     if(pid_in == -1){
         perror("fork error on making input process.\n");
@@ -73,8 +75,19 @@ int main(){
         char key[1024];
         int value;
         char mod = 0;
+        char chg = 0;
         char time_cnt = 0;
         char flag = 0;
+
+        // Init mod - clock
+        flag = 0;
+        flag = processing(
+                mod, NULL, proc_result, 0, 1);
+        if(flag){
+            strcpy(shmaddr_out, proc_result);
+            kill(pid_out, SIGUSR2);
+        }
+
         while(1){
             // Set mask ready to get signal from input proc
             signal(SIGUSR1, handler);
@@ -89,17 +102,30 @@ int main(){
                 if(!strcmp(key, "end"))
                     break;
                 else if(!strcmp(key, "key")){
-                    if(value == vol_up)
+                    if(value == vol_up){
                         mod = (mod+1)%MOD_NUM;
-                    else if(value == vol_dn)
+                        chg = 1;
+                    }
+                    else if(value == vol_dn){
                         mod = (mod+MOD_NUM-1)%MOD_NUM;
+                        chg = 1;
+                    }
+                    time_cnt = 0;
+                    flag = 0;
+                    flag = processing(
+                            mod, buf, proc_result, 0, chg);
+                    if(flag){
+                        strcpy(shmaddr_out, proc_result);
+                        kill(pid_out, SIGUSR2);
+                    }
+                    chg = 0;
                 }
                 // Processing when push btn input come
 
                 else if(!strcmp(key, "push")){
                     flag = 0;
                     flag = processing(
-                            mod, buf, proc_result, 0);
+                            mod, buf, proc_result, 0, chg);
                     if(flag){
                         strcpy(shmaddr_out, proc_result);
                         kill(pid_out, SIGUSR2);
@@ -111,8 +137,8 @@ int main(){
             if(time_cnt == 20){
                 time_cnt = 0;
                 flag = 0;
-                // TODO: when 1sec passed, do some processing
-                flag = processing(mod, NULL, proc_result, 1);
+                flag = processing(
+                        mod, NULL, proc_result, 1, chg);
                 if(flag){
                     strcpy(shmaddr_out, proc_result);
                     kill(pid_out, SIGUSR2);
