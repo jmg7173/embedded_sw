@@ -31,26 +31,28 @@ int main(){
     key_in = ftok("/etc/passwd", 1);
     key_out = ftok("/etc/passwd", 2);
 
+    // Make shared memory for input process - main process
     shmid_in = shmget(key_in, 1024, IPC_CREAT|0644);
     if(shmid_in == -1){
         perror("shmget btw in and main failed.\n");
         exit(1);
     }
 
+    // Make shared memory for Main process - Output process
     shmid_out = shmget(key_out, 1024, IPC_CREAT|0644);
     if(shmid_out == -1){
         perror("shmget btw main and out failed.\n");
         exit(1);
     }
 
-    // TODO: device ready test
-
+    // Make child - Input process
     pid_in = fork();
     if(pid_in == -1){
         perror("fork error on making input process.\n");
         exit(1);
     }
-    if(pid_in){
+    if(pid_in){ // If it is parent,
+        // Make child - Output process
         pid_out = fork();
         if(pid_out == -1){
             perror("fork error on making output process.\n");
@@ -89,7 +91,7 @@ int main(){
         }
 
         while(1){
-            // Set mask ready to get signal from input proc
+            // Set handler flag up when SIGUSR1 send from input proc
             signal(SIGUSR1, handler);
 
             // Get data from shared memory linked with input
@@ -120,8 +122,8 @@ int main(){
                     }
                     chg = 0;
                 }
-                // Processing when push btn input come
 
+                // Processing when push btn input come
                 else if(!strcmp(key, "push")){
                     flag = 0;
                     flag = processing(
@@ -132,8 +134,11 @@ int main(){
                     }
                 }
             }
+
+            // sleep 50ms
             usleep(50000); // 1s = 1000*1000 = 50000*20
             time_cnt++;
+            // If 1sec passed, do something
             if(time_cnt == 20){
                 time_cnt = 0;
                 flag = 0;
@@ -146,9 +151,11 @@ int main(){
             }
         }
 
+        // send process end message
         strcpy(shmaddr_out, "end");
         kill(pid_out, SIGUSR2);
 
+        // set free resources
         shmdt(shmaddr_in);
         shmdt(shmaddr_out);
         shmctl(shmid_in, IPC_RMID, NULL);

@@ -77,6 +77,7 @@ void lcd_write(char* value){
 
     str_size = strlen(value);
     strcpy(string, value);
+    // Set ' ' remain string
     memset(string+str_size, ' ', MAX_LCD_LEN-str_size);
     if(str_size > MAX_LCD_LEN){
         fprintf(stderr, "Too long text at lcd. size: %d\n",
@@ -101,12 +102,14 @@ void dot_matrix_char(char* value){
 
     len = strlen(value);
     if(len > 1){
+        // Use when initialize dot matrix
         if(!strcmp(value, "blank")){
             str_size = sizeof(fpga_blank);
             write(dev, fpga_blank, str_size);
         }
     }
     else{
+        // In case of alphabet, implemented only 'A'
         if(value[0] == 'A'){
             idx = value[0] - 'A';
             str_size = sizeof(fpga_char[idx]);
@@ -133,6 +136,7 @@ void dot_matrix_draw(char* value){
         perror("Invalid dot matrix draw string!");
         exit(1);
     }
+    // Cutting string to bit
     for(i = 0; i < 10; i++){
         for(j = 0; j < 7; j++){
             if(value[i*7+j] == '1'){

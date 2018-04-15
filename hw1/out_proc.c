@@ -32,11 +32,12 @@ void output_main(int pid_parent, int shmid){
         sigfillset(&mask);
         sigdelset(&mask, SIGUSR2);
         sigset(SIGUSR2, handler);
+        // Wait for signal
         sigsuspend(&mask);
         
         strcpy(buf, shmaddr);
         sscanf(buf, "%s", key);
-        if(!strcmp(key, "end"))
+        if(!strcmp(key, "end")) // Back key pressed
             break;
 
         sscanf(buf, "%d", &write_num);

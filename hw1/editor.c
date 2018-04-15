@@ -36,21 +36,22 @@ char mod_editor(char* buf, char* job, char is_time, char chg){
             // mod change 'A' -> '1' -> 'A', then keep alpha?
         }
         else if(btn_a == 2 && btn_b == 3){
-            cnt = (cnt + 1) % 10000;
+            // clear
             memset(text, 0, MAX_TEXT);
             alpha_idx = 0;
             text_idx = -1;
             prev = -1;
             cnt = 0;
-            // clear
         }
         else if(btn_a == 8 && btn_b == 9){
+            // Add spacebar
+            cnt = (cnt + 1) % 10000;
             prev = -1;
+            // If text filled lcd, shift it.
             if(text_idx == MAX_TEXT - 1){
                 strcpy(text, text+1);
                 text_idx--;
             }
-            // Add spacebar
             text[++text_idx] = ' ';
         }
         else{

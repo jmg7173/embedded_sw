@@ -22,6 +22,7 @@ char mod_draw(char* buf, char* job, char is_time, char chg){
         return 1;
     }
 
+    // cursor light toggling
     if(is_time && flicking){
         map[cursor] ^= 0x01;
     }

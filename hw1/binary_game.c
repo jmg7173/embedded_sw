@@ -32,7 +32,7 @@ char mod_game(char* buf, char* job, char is_time, char chg){
         return 1;
     }
     if(game_start == 0){ // game ready
-        if(is_time && new_question){
+        if(is_time && new_question){ // If next question
             timer = 9;
             input = -1;
             answer = rand() % 16;
@@ -68,6 +68,7 @@ char mod_game(char* buf, char* job, char is_time, char chg){
     }
     else if(game_start == 1){ // game is ongoing
         if(is_time){
+            // count down
             timer--;
             if(timer == 0){
                 game_start = 2;
@@ -77,6 +78,7 @@ char mod_game(char* buf, char* job, char is_time, char chg){
             }
         }
         else{
+            // get user input - answer
             get_push_id(buf, &btn_a, &btn_b, &is_multi);
             if(is_multi){
                 // submit pressed

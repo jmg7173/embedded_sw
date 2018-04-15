@@ -77,6 +77,8 @@ static void digit_increase(
     int add = 1;
     int tmp, rem;
 
+    // If a number changed,
+    // change all numeral system numbers
     for(i = 1; i < digit; ++i){
         add *= base[numeric];
     }

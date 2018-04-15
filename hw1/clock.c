@@ -26,6 +26,7 @@ char mod_clock(char* buf, char* job, char is_time, char chg){
         return 1;
     }
     if(is_time){
+        // If mod changing, toggle led
         if(mod_changing){
             if(led == 128)
                 led = 0b00010000;
@@ -42,6 +43,7 @@ char mod_clock(char* buf, char* job, char is_time, char chg){
                 sprintf(job, "1 fnd %02d%02d",
                         cur_time/60, cur_time%60);
                 modified = 1;
+                timer = 0;
             }
         }
     }
@@ -52,31 +54,31 @@ char mod_clock(char* buf, char* job, char is_time, char chg){
         if(is_multi){
             return 0;
         }
-        switch(btn_a){
-            case 1:
+        switch(btn_a){ // only one button pressed
+            case 1: // mod changing toggle
                 mod_changing = 1-mod_changing;
                 timer = 0;
-                if(!mod_changing){
+                if(!mod_changing){ // If fix mode
                     cur_time = modified_time;
                     led = 0b10000000;
                 }
-                else{
+                else{ // If change mode
                     modified_time = cur_time;
                     led = 0b00100000;
                 }
                 break;
-            case 2:
+            case 2: // reset
                 modified_time = get_board_time();
                 break;
-            case 3:
+            case 3: // increase hour
                 modified_time =
                     (modified_time + 60) % 1440;
                 break;
-            case 4:
+            case 4: // increase minute
                 modified_time =
                     (modified_time + 1) % 1440;
                 break;
-            default:
+            default: // Other button
                 return 0;
         }
         if(mod_changing){
