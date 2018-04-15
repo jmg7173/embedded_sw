@@ -45,7 +45,6 @@ char mod_editor(char* buf, char* job, char is_time, char chg){
             // clear
         }
         else if(btn_a == 8 && btn_b == 9){
-            cnt = (cnt + 1) % 10000;
             prev = -1;
             if(text_idx == MAX_TEXT - 1){
                 strcpy(text, text+1);
