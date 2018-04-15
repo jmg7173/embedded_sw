@@ -16,7 +16,8 @@ char mod_game(char* buf, char* job, char is_time, char chg){
     static char text[33] = {0};
     static char new_question = 0;
 
-    int btn_a = 0, btn_b = 0, is_multi = 0;
+    int btn_a = 0, btn_b = 0;
+    char is_multi = 0;
 
     // init
     if(score == -1 || chg){
