@@ -18,6 +18,7 @@ char mod_editor(char* buf, char* job, char is_time, char chg){
     if(input_mod == -1 || chg){
         if(input_mod == -1)
             input_mod = 'A';
+        prev = -1;
         sprintf(job, "4 init 0 char %c fnd %04d lcd %s",
                 input_mod, cnt, text);
         return 1;
