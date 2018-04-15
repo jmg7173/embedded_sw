@@ -18,7 +18,7 @@ char mod_draw(char* buf, char* job, char is_time, char chg){
             memset(map, '0', MAP_SIZE);
             cursor = 0;
         }
-        sprintf(job,"2 init 0 draw %s", map);
+        sprintf(job,"3 init 0 fnd %04d draw %s", cnt, map);
         return 1;
     }
 
