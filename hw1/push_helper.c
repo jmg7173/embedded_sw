@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "push_helper.h"
 void get_push_id(char* buf, int* a, int* b, char* is_multi){
     *b = -1;
     sscanf(buf,"%*s %d %d", a, b);
