@@ -3,13 +3,9 @@
 #include <linux.fs.h>
 #include <asm/uaccess.h>
 
+#include "io_driver.h"
 #define DEV_DRIVER_MAJOR 242
 #define DEV_DRIVER_NAME "dev_driver"
-
-#define FPGA_DOT_ADDRESS 0x08000210
-#define FPGA_FND_ADDRESS 0x08000004
-#define FPGA_LED_ADDRESS 0x08000016
-#define FPGA_TEXT_LCD_ADDRESS 0x08000090
 
 int init_module(void);
 void cleanup_module(void);
