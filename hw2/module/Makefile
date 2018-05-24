@@ -1,12 +1,13 @@
 #Makefile for a basic kernel module
 
-obj-m   := fpga_dot_driver.o fpga_fnd_driver.o fpga_led_driver.o fpga_text_lcd_driver.o dev_driver.o
+obj-m   := dev_driverko.o
+dev_driverko-objs := io_driver.o dev_driver.o 
 
 KDIR    :=/work/achroimx_kernel
 PWD     :=$(shell pwd)
 APP		:= dev_driver
 
-all: driver app
+all: driver
 #all: driver 
 
 driver:
@@ -27,4 +28,5 @@ clean:
 	rm -rf modules.order
 	rm -rf .tmp*
 	rm -rf .fpga*
+	rm -rf .*.cmd
 	rm dev_driver

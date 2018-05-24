@@ -5,7 +5,7 @@
 #include <linux/uaccess.h>
 #include <linux/platform_device.h>
 
-#include <string.h>
+#include <linux/string.h>
 
 #include "io_driver.h"
 
@@ -18,16 +18,18 @@ static int device_open(struct inode *, struct file *);
 static int device_release(struct inode *, struct file *);
 static ssize_t device_read(struct file *, char *, size_t, loff_t *);
 static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
+static int device_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
+static void init_devices(void);
 
 static struct file_operations fops = {
     .read = device_read,
     .write = device_write,
+    .unlocked_ioctl = device_ioctl,
     .open = device_open,
     .release = device_release,
-    .ioctl = device_ioctl
 };
 
-static struct timer_data{
+struct timer_data{
     struct timer_list timer;
     int start;          // pattern
     int cur;            // cur pattern
@@ -36,20 +38,18 @@ static struct timer_data{
     int gap;            // time gap
     int first_lcd_gap;  // lcd first line space
     int first_lcd_move;
-    int second_lcd gap; // lcd second line space
+    int second_lcd_gap; // lcd second line space
     int second_lcd_move;
 };
 
-struct timer_data data;
+static struct timer_data data;
 
 static int dev_usage = 0;
 const static char empty_str[] = "                ";
-const static char stu_num[] = "20141578"
-const static char stu_name[] = "Min Gyo Jung"
-const static int stu_num_len = strlen(stu_num);
-const static int stu_name_len = strlen(stu_name);
+const static char stu_num[] = "20141578";
+const static char stu_name[] = "Min Gyo Jung";
 
-static void init_devices(){
+static void init_devices(void){
     iom_fpga_dot_write(-1);
     iom_fpga_fnd_write(0);
     iom_fpga_led_write(0);
@@ -82,10 +82,11 @@ static ssize_t device_read(struct file *filp, char *buff, size_t len, loff_t *of
 
 static void timer_iterator(unsigned long timeout){
     struct timer_data *p_data = (struct timer_data*)timeout;
-    int out_str;
     char lcd_str[33] = {0};
     int i, multiplier = 1;
     int fnd;
+    int stu_num_len = strlen(stu_num);
+    int stu_name_len = strlen(stu_name);
 
     // fnd
     for(i = 1; i < p_data->pos; ++i)
@@ -104,7 +105,7 @@ static void timer_iterator(unsigned long timeout){
     if(p_data->cur == p_data->start){
         p_data->pos = (p_data->pos + 3) % 4 + 1;
     }
-    
+
     // lcd changing
     strcpy(lcd_str, empty_str);
     strcpy(lcd_str + p_data->first_lcd_gap, stu_num);
@@ -136,14 +137,14 @@ static void timer_iterator(unsigned long timeout){
     data.timer.expires = get_jiffies_64() + (p_data->gap * HZ/10);
     data.timer.data = (unsigned long)&data;
     data.timer.function = timer_iterator;
-    add_timer(&mydata.timer);
+    add_timer(&data.timer);
 }
 
 
 // write
 static ssize_t device_write(struct file *filp, const char *gdata, size_t len, loff_t *offset){
     const char *tmp = gdata;
-    int val; = *(int *)gdata;
+    int val;
     int start_pos;
     int start_val;
     int time_gap;
@@ -179,9 +180,14 @@ static ssize_t device_write(struct file *filp, const char *gdata, size_t len, lo
     data.timer.function = timer_iterator;
     data.timer.data = (unsigned long)&data;
 
-    add_timer(&mydata.timer);
+    add_timer(&data.timer);
 
     return 1;
+}
+
+
+static int device_ioctl(struct inode *inode, struct file *file, unsigned int ioctl_num, unsigned long ioctl_param){
+    return 0;
 }
 
 // driver init
