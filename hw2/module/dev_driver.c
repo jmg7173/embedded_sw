@@ -46,8 +46,8 @@ static int dev_usage = 0;
 const static char empty_str[] = "                ";
 const static char stu_num[] = "20141578"
 const static char stu_name[] = "Min Gyo Jung"
-const int stu_num_len = strlen(stu_num);
-const int stu_name_len = strlen(stu_name);
+const static int stu_num_len = strlen(stu_num);
+const static int stu_name_len = strlen(stu_name);
 
 // open
 static int device_open(struct inode *inode, struct file *file){
@@ -74,7 +74,7 @@ static ssize_t device_read(struct file *filp, char *buff, size_t len, loff_t *of
 static void timer_iterator(unsigned long timeout){
     struct timer_data *p_data = (struct timer_data*)timeout;
     int out_str;
-    char lcd_str[33];
+    char lcd_str[33] = {0};
     // do something
 
     // pattern changing
@@ -86,19 +86,24 @@ static void timer_iterator(unsigned long timeout){
     // lcd changing
     
     strcpy(lcd_str, empty_str);
-    strcpy(lcd_str+p_data->first_lcd_gap, stu_num);
+    strcpy(lcd_str + p_data->first_lcd_gap, stu_num);
     strcpy(lcd_str+16, empty_str);
-    strcpy(lcd_str+16+p_data->second_lcd_gap, stu_name);
-    if(p_data->first_lcd_move == 1){
-    }
-    else{ // p_data->first_lcd_move == -1
-    }
+    strcpy(lcd_str+16 + p_data->second_lcd_gap, stu_name);
 
-    if(p_data->second_lcd_move == -1){
-    }
-    else{ // p_data->second_lcd_move == -1
-    }
+    p_data->first_lcd_gap = p_data->first_lcd_gap + p_data->first_lcd_move;
+    p_data->second_lcd_gap = p_data->second_lcd_gap + p_data->second_lcd_move;
 
+    if(p_data->first_lcd_gap == 0)
+        p_data->first_lcd_move = 1;
+    else if(p_data->first_lcd_gap + stu_num_len == 16)
+        p_data->first_lcd_move = -1;
+
+    if(p_data->second_lcd_gap == 0)
+        p_data->second_lcd_move = 1;
+    else if(p_data->second_lcd_gap + stu_name_len == 16)
+        p_data->second_lcd_move = -1;
+
+    iom_fpga_text_lcd_write(lcd_str);
 
     p_data->remain--;
     if(p_data->remain <= 0){
