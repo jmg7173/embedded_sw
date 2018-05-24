@@ -49,8 +49,16 @@ const static char stu_name[] = "Min Gyo Jung"
 const static int stu_num_len = strlen(stu_num);
 const static int stu_name_len = strlen(stu_name);
 
+static void init_devices(){
+    iom_fpga_dot_write(-1);
+    iom_fpga_fnd_write(0);
+    iom_fpga_led_write(0);
+    iom_fpga_text_lcd_init();
+}
+
 // open
 static int device_open(struct inode *inode, struct file *file){
+    init_devices();
     if(dev_usage){
         return -EBUSY;
     }
@@ -60,6 +68,7 @@ static int device_open(struct inode *inode, struct file *file){
 
 // close
 static int device_release(struct inode *inode, struct file *file){
+    // init_devices(); // <- is it necessary?
     dev_usage = 0;
     return 0;
 }
@@ -75,7 +84,20 @@ static void timer_iterator(unsigned long timeout){
     struct timer_data *p_data = (struct timer_data*)timeout;
     int out_str;
     char lcd_str[33] = {0};
-    // do something
+    int i, multiplier = 1;
+    int fnd;
+
+    // fnd
+    for(i = 1; i < p_data->pos; ++i)
+        multiplier *= 10;
+    fnd = p_data->cur * multiplier;
+    iom_fpga_fnd_write(fnd);
+
+    // led
+    iom_fpga_led_write(1 << (p_data->cur - 1));
+
+    // dot
+    iom_fpga_dot_write(p_data->cur);
 
     // pattern changing
     p_data->cur = (p_data->cur + 1) % 8 + 1;
@@ -84,11 +106,11 @@ static void timer_iterator(unsigned long timeout){
     }
     
     // lcd changing
-    
     strcpy(lcd_str, empty_str);
     strcpy(lcd_str + p_data->first_lcd_gap, stu_num);
     strcpy(lcd_str+16, empty_str);
     strcpy(lcd_str+16 + p_data->second_lcd_gap, stu_name);
+    iom_fpga_text_lcd_write(lcd_str);
 
     p_data->first_lcd_gap = p_data->first_lcd_gap + p_data->first_lcd_move;
     p_data->second_lcd_gap = p_data->second_lcd_gap + p_data->second_lcd_move;
@@ -103,14 +125,14 @@ static void timer_iterator(unsigned long timeout){
     else if(p_data->second_lcd_gap + stu_name_len == 16)
         p_data->second_lcd_move = -1;
 
-    iom_fpga_text_lcd_write(lcd_str);
 
     p_data->remain--;
     if(p_data->remain <= 0){
-        // need initialize
+        init_devices();
         return;
     }
 
+    // re add to timer
     data.timer.expires = get_jiffies_64() + (p_data->gap * HZ/10);
     data.timer.data = (unsigned long)&data;
     data.timer.function = timer_iterator;
@@ -179,6 +201,7 @@ int dev_driver_init(void){
 // driver exit
 void dev_driver_exit(void){
     printk("dev_driver exit\n");
+    init_devices();
     dev_usage = 0;
     del_timer_sync(&data.timer);
     unregister_chrdev(DEV_DRIVER_MAJOR, DEV_DRIVER_NAME);
