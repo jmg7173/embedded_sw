@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <signal.h>
+#include <sys/times.h>
+
 #define DEV_DRIVER "/dev/dev_driver"
 #define INPUT_SYSCALL_NUM 376
 
@@ -16,6 +19,7 @@ int main(int argc, char **argv){
     struct dev_data syscall_input;
     int write_val;
     unsigned char retval;
+    sigset_t mask;
 
     if(argc != 4){
         printf("please input the parameter\n");
@@ -46,5 +50,7 @@ int main(int argc, char **argv){
     write_val = syscall(INPUT_SYSCALL_NUM, &syscall_input);
     dev = open(DEV_DEVICE, O_RDWR);
     retval = write(dev, (char*)&write_val, sizeof(int));
+
     close(dev);
+    return 0;
 }
