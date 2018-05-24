@@ -2,6 +2,7 @@
 
 #include "device_addr.h"
 #include "fpga_dot_font.h"
+#include "io_driver.h"
 
 void iom_fpga_dot_write(int num){
     unsigned short int _s_value;
