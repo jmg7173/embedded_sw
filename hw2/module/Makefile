@@ -1,20 +1,16 @@
 #Makefile for a basic kernel module
 
-obj-m   := dev_driverko.o
-dev_driverko-objs := io_driver.o dev_driver.o 
+obj-m   := dev_driver.o
+dev_driver-objs := io_driver.o device_driver.o 
 
 KDIR    :=/work/achroimx_kernel
 PWD     :=$(shell pwd)
-APP		:= dev_driver
 
 all: driver
 #all: driver 
 
 driver:
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules ARCH=arm
-
-app:
-	arm-none-linux-gnueabi-gcc -static -o $(APP) $(APP).c
 
 install:
 	cp -a fpga_dot_driver.ko /nfsroot
@@ -29,4 +25,3 @@ clean:
 	rm -rf .tmp*
 	rm -rf .fpga*
 	rm -rf .*.cmd
-	rm dev_driver

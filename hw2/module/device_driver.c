@@ -18,7 +18,7 @@ static int device_open(struct inode *, struct file *);
 static int device_release(struct inode *, struct file *);
 static ssize_t device_read(struct file *, char *, size_t, loff_t *);
 static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
-static int device_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
+static long device_ioctl(struct file *, unsigned int, unsigned long);
 static void init_devices(void);
 
 static struct file_operations fops = {
@@ -51,7 +51,7 @@ const static char stu_name[] = "Min Gyo Jung";
 
 static void init_devices(void){
     iom_fpga_dot_write(-1);
-    iom_fpga_fnd_write(0);
+    iom_fpga_fnd_write("\0\0\0\0");
     iom_fpga_led_write(0);
     iom_fpga_text_lcd_init();
 }
@@ -63,6 +63,7 @@ static int device_open(struct inode *inode, struct file *file){
         return -EBUSY;
     }
     dev_usage = 1;
+    printk("device open success!\n");
     return 0;
 }
 
@@ -70,6 +71,7 @@ static int device_open(struct inode *inode, struct file *file){
 static int device_release(struct inode *inode, struct file *file){
     // init_devices(); // <- is it necessary?
     dev_usage = 0;
+    printk("device release success!\n");
     return 0;
 }
 
@@ -83,34 +85,35 @@ static ssize_t device_read(struct file *filp, char *buff, size_t len, loff_t *of
 static void timer_iterator(unsigned long timeout){
     struct timer_data *p_data = (struct timer_data*)timeout;
     char lcd_str[33] = {0};
-    int i, multiplier = 1;
-    int fnd;
+    char fnd[5] = {0};
     int stu_num_len = strlen(stu_num);
     int stu_name_len = strlen(stu_name);
 
     // fnd
-    for(i = 1; i < p_data->pos; ++i)
-        multiplier *= 10;
-    fnd = p_data->cur * multiplier;
+    fnd[p_data->pos] = p_data->cur + 1;
+    printk("fnd - %d%d%d%d writing...\n", fnd[0], fnd[1], fnd[2], fnd[3]);
     iom_fpga_fnd_write(fnd);
 
     // led
-    iom_fpga_led_write(1 << (p_data->cur - 1));
+    iom_fpga_led_write(1 << (p_data->cur));
 
     // dot
-    iom_fpga_dot_write(p_data->cur);
+    iom_fpga_dot_write(p_data->cur + 1);
 
     // pattern changing
-    p_data->cur = (p_data->cur + 1) % 8 + 1;
+    p_data->cur = (p_data->cur + 1) % 8;
     if(p_data->cur == p_data->start){
-        p_data->pos = (p_data->pos + 3) % 4 + 1;
+        p_data->pos = (p_data->pos + 1) % 4;
     }
 
     // lcd changing
     strcpy(lcd_str, empty_str);
     strcpy(lcd_str + p_data->first_lcd_gap, stu_num);
+    lcd_str[p_data->first_lcd_gap + stu_num_len] = ' ';
     strcpy(lcd_str+16, empty_str);
     strcpy(lcd_str+16 + p_data->second_lcd_gap, stu_name);
+    lcd_str[16+p_data->second_lcd_gap + stu_name_len] = ' ';
+    lcd_str[32] = '\0';
     iom_fpga_text_lcd_write(lcd_str);
 
     p_data->first_lcd_gap = p_data->first_lcd_gap + p_data->first_lcd_move;
@@ -130,9 +133,11 @@ static void timer_iterator(unsigned long timeout){
     p_data->remain--;
     if(p_data->remain <= 0){
         init_devices();
+        printk("iteration finished\n");
         return;
     }
 
+    printk("remain: %d\n", p_data->remain);
     // re add to timer
     data.timer.expires = get_jiffies_64() + (p_data->gap * HZ/10);
     data.timer.data = (unsigned long)&data;
@@ -166,10 +171,10 @@ static ssize_t device_write(struct file *filp, const char *gdata, size_t len, lo
 
     del_timer_sync(&data.timer);
 
-    data.start = start_val;
+    data.start = start_val - 1;
     data.pos = start_pos;
     data.remain = times;
-    data.cur = start_val;
+    data.cur = start_val - 1;
     data.gap = time_gap;
     data.first_lcd_gap = 0;
     data.second_lcd_gap = 0;
@@ -181,12 +186,13 @@ static ssize_t device_write(struct file *filp, const char *gdata, size_t len, lo
     data.timer.data = (unsigned long)&data;
 
     add_timer(&data.timer);
+    printk("Add timer OK!\n");
 
     return 1;
 }
 
 
-static int device_ioctl(struct inode *inode, struct file *file, unsigned int ioctl_num, unsigned long ioctl_param){
+static long device_ioctl(struct file *file, unsigned int ioctl_num, unsigned long ioctl_param){
     return 0;
 }
 
@@ -199,6 +205,7 @@ int dev_driver_init(void){
         return result;
     }
     printk("init module, %s major number: %d\n", DEV_DRIVER_NAME, DEV_DRIVER_MAJOR);
+    iom_mapping();
 
     init_timer(&(data.timer));
     return 0;
@@ -208,6 +215,7 @@ int dev_driver_init(void){
 void dev_driver_exit(void){
     printk("dev_driver exit\n");
     init_devices();
+    iom_unmapping();
     dev_usage = 0;
     del_timer_sync(&data.timer);
     unregister_chrdev(DEV_DRIVER_MAJOR, DEV_DRIVER_NAME);

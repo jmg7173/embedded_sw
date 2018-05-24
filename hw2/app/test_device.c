@@ -50,8 +50,11 @@ int main(int argc, char **argv){
     syscall_input.option = option;
 
     write_val = syscall(INPUT_SYSCALL_NUM, &syscall_input);
+    printf("writeval: %x\n", write_val);
     dev = open(DEV_DRIVER, O_RDWR);
+    printf("dev: %d\n", dev);
     retval = write(dev, (char*)&write_val, sizeof(int));
+    printf("retval: %d\n", retval);
 
     close(dev);
     return 0;

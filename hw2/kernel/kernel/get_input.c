@@ -16,7 +16,7 @@ asmlinkage int sys_get_input(struct dev_data *data){
     }
 
     if(ker_data.option % 10){
-        result |= 1 << 24; // start position
+        result |= 3 << 24; // start position
         result |= ker_data.option << 16; //start pattern
     }
     else if(ker_data.option % 100){
@@ -24,11 +24,11 @@ asmlinkage int sys_get_input(struct dev_data *data){
         result |= (ker_data.option / 10) << 16;
     }
     else if(ker_data.option % 1000){
-        result |= 3 << 24;
+        result |= 1 << 24;
         result |= (ker_data.option / 100) << 16;
     }
     else if(ker_data.option % 10000){
-        result |= 4 << 24;
+        result |= 0 << 24;
         result |= (ker_data.option / 1000) << 16;
     }
 
