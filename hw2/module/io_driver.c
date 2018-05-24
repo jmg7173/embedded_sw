@@ -48,3 +48,7 @@ void iom_fpga_text_lcd_write(const char* gdata){
 
     iounmap(iom_fpga-text_lcd_addr);
 }
+
+void iom_fpga_text_lcd_init(void){
+    iom_fpga_text_lcd_write(empty_lcd);
+}

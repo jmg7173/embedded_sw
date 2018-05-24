@@ -1,7 +1,11 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux.fs.h>
-#include <asm/uaccess.h>
+#include <linux/fs.h>
+#include <linux/init.h>
+#include <linux/uaccess.h>
+#include <linux/platform_device.h>
+
+#include <string.h>
 
 #include "io_driver.h"
 
@@ -25,16 +29,25 @@ static struct file_operations fops = {
 
 static struct timer_data{
     struct timer_list timer;
-    int start;      // pattern
-    int cur;        // cur pattern
-    int pos;        // fnd position
-    int remain;     // iter remain
-    int gap;        // time gap
+    int start;          // pattern
+    int cur;            // cur pattern
+    int pos;            // fnd position
+    int remain;         // iter remain
+    int gap;            // time gap
+    int first_lcd_gap;  // lcd first line space
+    int first_lcd_move;
+    int second_lcd gap; // lcd second line space
+    int second_lcd_move;
 };
 
 struct timer_data data;
 
 static int dev_usage = 0;
+const static char empty_str[] = "                ";
+const static char stu_num[] = "20141578"
+const static char stu_name[] = "Min Gyo Jung"
+const int stu_num_len = strlen(stu_num);
+const int stu_name_len = strlen(stu_name);
 
 // open
 static int device_open(struct inode *inode, struct file *file){
@@ -60,8 +73,32 @@ static ssize_t device_read(struct file *filp, char *buff, size_t len, loff_t *of
 
 static void timer_iterator(unsigned long timeout){
     struct timer_data *p_data = (struct timer_data*)timeout;
-
+    int out_str;
+    char lcd_str[33];
     // do something
+
+    // pattern changing
+    p_data->cur = (p_data->cur + 1) % 8 + 1;
+    if(p_data->cur == p_data->start){
+        p_data->pos = (p_data->pos + 3) % 4 + 1;
+    }
+    
+    // lcd changing
+    
+    strcpy(lcd_str, empty_str);
+    strcpy(lcd_str+p_data->first_lcd_gap, stu_num);
+    strcpy(lcd_str+16, empty_str);
+    strcpy(lcd_str+16+p_data->second_lcd_gap, stu_name);
+    if(p_data->first_lcd_move == 1){
+    }
+    else{ // p_data->first_lcd_move == -1
+    }
+
+    if(p_data->second_lcd_move == -1){
+    }
+    else{ // p_data->second_lcd_move == -1
+    }
+
 
     p_data->remain--;
     if(p_data->remain <= 0){
@@ -106,6 +143,10 @@ static ssize_t device_write(struct file *filp, const char *gdata, size_t len, lo
     data.remain = times;
     data.cur = start_val;
     data.gap = time_gap;
+    data.first_lcd_gap = 0;
+    data.second_lcd_gap = 0;
+    data.first_lcd_move = 1;
+    data.second_lcd_move = 1;
 
     data.timer.expires = get_jiffies_64() + (time_gap*HZ/10);
     data.timer.function = timer_iterator;
