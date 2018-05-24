@@ -7,10 +7,8 @@
 
 #include <linux/string.h>
 
+#include "device_driver.h"
 #include "io_driver.h"
-
-#define DEV_DRIVER_MAJOR 242
-#define DEV_DRIVER_NAME "dev_driver"
 
 int init_module(void);
 void cleanup_module(void);
@@ -29,7 +27,7 @@ static struct file_operations fops = {
     .release = device_release,
 };
 
-struct timer_data{
+static struct timer_data{
     struct timer_list timer;
     int start;          // pattern
     int cur;            // cur pattern
@@ -40,9 +38,7 @@ struct timer_data{
     int first_lcd_move;
     int second_lcd_gap; // lcd second line space
     int second_lcd_move;
-};
-
-static struct timer_data data;
+}data;
 
 static int dev_usage = 0;
 const static char empty_str[] = "                ";
@@ -193,7 +189,18 @@ static ssize_t device_write(struct file *filp, const char *gdata, size_t len, lo
 
 
 static long device_ioctl(struct file *file, unsigned int ioctl_num, unsigned long ioctl_param){
-    return 0;
+    ssize_t retval = 0;
+    printk("ioctl_num: %u\n", ioctl_num);
+    printk("IOCTL_START_APP: %u\n", IOCTL_START_APP);
+    printk("ioctl_param: %x\n", (unsigned int)ioctl_param);
+    switch(ioctl_num){
+        case IOCTL_START_APP:
+            retval = device_write(file, (char *)ioctl_param, 4, NULL);
+            break;
+        default:
+            return retval;
+    }
+    return retval;
 }
 
 // driver init

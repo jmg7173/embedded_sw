@@ -5,6 +5,8 @@
 #include <sys/times.h>
 #include <fcntl.h>
 
+#include "../module/device_driver.h"
+
 #define DEV_DRIVER "/dev/dev_driver"
 #define INPUT_SYSCALL_NUM 376
 
@@ -50,11 +52,13 @@ int main(int argc, char **argv){
     syscall_input.option = option;
 
     write_val = syscall(INPUT_SYSCALL_NUM, &syscall_input);
-    printf("writeval: %x\n", write_val);
     dev = open(DEV_DRIVER, O_RDWR);
-    printf("dev: %d\n", dev);
-    retval = write(dev, (char*)&write_val, sizeof(int));
-    printf("retval: %d\n", retval);
+
+    // ioctl version
+    retval = ioctl(dev, IOCTL_START_APP, (char*)&write_val);
+
+    // write version
+    // retval = write(dev, (char*)&write_val, sizeof(int));
 
     close(dev);
     return 0;
