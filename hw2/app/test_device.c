@@ -45,6 +45,6 @@ int main(int argc, char **argv){
 
     write_val = syscall(INPUT_SYSCALL_NUM, &syscall_input);
     dev = open(DEV_DEVICE, O_RDWR);
-    retval = write(dev, &write_val, sizeof(int));
+    retval = write(dev, (char*)&write_val, sizeof(int));
     close(dev);
 }
