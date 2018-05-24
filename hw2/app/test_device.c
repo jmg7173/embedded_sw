@@ -3,6 +3,7 @@
 
 #include <signal.h>
 #include <sys/times.h>
+#include <fcntl.h>
 
 #define DEV_DRIVER "/dev/dev_driver"
 #define INPUT_SYSCALL_NUM 376
@@ -16,6 +17,7 @@ struct dev_data{
 int main(int argc, char **argv){
     int gap, times;
     int option;
+    int dev;
     struct dev_data syscall_input;
     int write_val;
     unsigned char retval;
@@ -48,7 +50,7 @@ int main(int argc, char **argv){
     syscall_input.option = option;
 
     write_val = syscall(INPUT_SYSCALL_NUM, &syscall_input);
-    dev = open(DEV_DEVICE, O_RDWR);
+    dev = open(DEV_DRIVER, O_RDWR);
     retval = write(dev, (char*)&write_val, sizeof(int));
 
     close(dev);
