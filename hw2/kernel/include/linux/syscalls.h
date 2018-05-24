@@ -853,7 +853,4 @@ asmlinkage long sys_setns(int fd, int nstype);
 
 // New systemcall
 asmlinkage int sys_get_input(struct dev_data *data);
-asmlinkage int sys_newcall(int a);
-asmlinkage int sys_newcall2(struct mystruct *dd);
-asmlinkage int sys_newcall3(struct arithmetic *data);
 #endif

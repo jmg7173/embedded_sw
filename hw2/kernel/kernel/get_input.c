@@ -9,9 +9,11 @@ struct dev_data{
 
 asmlinkage int sys_get_input(struct dev_data *data){
     struct dev_data ker_data;
-    int gap, times, option;
     int result = 0;
-    copy_from_user(&ker_data, data, sizeof(ker_data));
+    if(copy_from_user(&ker_data, data, sizeof(ker_data))){
+        printk(KERN_ALERT"Error when copy from user - syscall\n");
+        return -1;
+    }
 
     if(ker_data.option % 10){
         result |= 1 << 24; // start position
