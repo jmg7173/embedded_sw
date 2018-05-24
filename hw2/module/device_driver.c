@@ -91,7 +91,7 @@ static void timer_iterator(unsigned long timeout){
     iom_fpga_fnd_write(fnd);
 
     // led
-    iom_fpga_led_write(1 << (p_data->cur));
+    iom_fpga_led_write(1 << (7 - p_data->cur));
 
     // dot
     iom_fpga_dot_write(p_data->cur + 1);
