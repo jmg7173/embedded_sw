@@ -85,6 +85,12 @@ static void timer_iterator(unsigned long timeout){
     int stu_num_len = strlen(stu_num);
     int stu_name_len = strlen(stu_name);
 
+    if(p_data->remain <= 0){
+        init_devices();
+        printk("iteration finished\n");
+        return;
+    }
+
     // fnd
     fnd[p_data->pos] = p_data->cur + 1;
     printk("fnd - %d%d%d%d writing...\n", fnd[0], fnd[1], fnd[2], fnd[3]);
@@ -127,11 +133,6 @@ static void timer_iterator(unsigned long timeout){
 
 
     p_data->remain--;
-    if(p_data->remain <= 0){
-        init_devices();
-        printk("iteration finished\n");
-        return;
-    }
 
     printk("remain: %d\n", p_data->remain);
     // re add to timer
