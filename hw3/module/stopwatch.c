@@ -82,7 +82,7 @@ irqreturn_t inter_pause(int irq, void* dev_id, struct pt_regs* reg){
 
 irqreturn_t inter_reset(int irq, void* dev_id, struct pt_regs* reg){
     del_timer_sync(&data.timer);
-    data.seconds = 0;
+    data.seconds = 1;
     printk("Reset stopwatch!\n");
     iom_fpga_fnd_write("\0\0\0\0");
     return IRQ_HANDLED;
@@ -120,7 +120,7 @@ static void timer_iterator(unsigned long timeout){
     fnd[3] = seconds % 10;
     iom_fpga_fnd_write(fnd);
 
-    p_data->seconds++;
+    p_data->seconds = (p_data->seconds + 1) % 3600;
 
     data.timer.expires = get_jiffies_64() + DEFAULT_SEC * HZ;
     data.timer.data = (unsigned long)&data;
@@ -131,18 +131,18 @@ static void timer_iterator(unsigned long timeout){
 static void timer_quit(unsigned long timeout){
     struct timer_data *p_data = (struct timer_data*)timeout;
     printk("remain: %d", p_data->seconds);
-    if(!gpio_get_value(IMX_GPIO_NR(5, 14)) && --(p_data->seconds) == 0){
-        iom_fpga_fnd_write("\0\0\0\0");
-
-        data.seconds = 0;
-        del_timer_sync(&data.timer);
-        
-        printk("Quit button pressed 3 seconds\n");
-        __wake_up(&wq_write, 1, 1, NULL);
-        return;
-    }
-
     if(!gpio_get_value(IMX_GPIO_NR(5, 14))){
+        if(--(p_data->seconds) == 0){
+            iom_fpga_fnd_write("\0\0\0\0");
+
+            data.seconds = 0;
+            del_timer_sync(&data.timer);
+
+            printk("Quit button pressed 3 seconds\n");
+            __wake_up(&wq_write, 1, 1, NULL);
+            return;
+        }
+
         data2.timer.expires = get_jiffies_64() + DEFAULT_SEC * HZ;
         data2.timer.data = (unsigned long)&data2;
         data2.timer.function = timer_quit;
@@ -161,7 +161,7 @@ static int stopwatch_open(struct inode *inode, struct file *file){
 
     printk("Open module!\n");
 
-    data.seconds = 0;
+    data.seconds = 1;
 
     // interrupt - home
     gpio_direction_input(IMX_GPIO_NR(1, 11));
@@ -185,7 +185,7 @@ static int stopwatch_open(struct inode *inode, struct file *file){
     gpio_direction_input(IMX_GPIO_NR(5, 14));
     irq = gpio_to_irq(IMX_GPIO_NR(5, 14));
     printk("Vol dn btn IRQ number: %d\n", irq);
-    ret = request_irq(irq, inter_quit, IRQF_TRIGGER_FALLING, "voldown", 0);
+    ret = request_irq(irq, inter_quit, IRQF_TRIGGER_FALLING|IRQF_TRIGGER_RISING, "voldown", 0);
 
     return 0;
 }
