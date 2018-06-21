@@ -7,11 +7,15 @@ import java.util.Random;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
@@ -21,17 +25,37 @@ public class MainActivity2 extends Activity{
 	LinearLayout linear;
 	EditText text;
 	GridLayout grid;
-	//LinearLayout puzzle_view[];
 	int puzzle[][];
+	int fd;
 	Button buttons[][];
 	OnClickListener btn_change;
+	ReadThread mThread;
+	
+	public native int openDriver();
+	public native void writeDriver(int fd, int val);
+	public native int readDriver(int fd);
+	public native void closeDriver(int fd);
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main2);
+		
+		Log.d(null, "Activity 2 loaded");
+		
+		System.loadLibrary("driver-func");
+		Log.d(null, "library loaded");
+		
+		fd = openDriver();
+		Log.d(null, "driver opened");
+		
+		mThread = new ReadThread();
+		mThread.setDaemon(true);
+		mThread.start();
+		Log.d(null, "thread generated");
+		
 		linear = (LinearLayout)findViewById(R.id.linLayoutBtn);
-				
+
 		text = (EditText)findViewById(R.id.editText1);
 		Button make = (Button)findViewById(R.id.make);
 		btn_change = new OnClickListener(){
@@ -50,6 +74,7 @@ public class MainActivity2 extends Activity{
 					int tmp = puzzle[idx[0]][idx[1]];
 					puzzle[idx[0]][idx[1]] = puzzle[result[0]][result[1]];
 					puzzle[result[0]][result[1]] = tmp;
+					writeDriver(fd, 0);
 				}
 				else
 					return;
@@ -61,13 +86,10 @@ public class MainActivity2 extends Activity{
 				// TODO: when matched
 				if(matched){
 					Log.d(null, "tile matched!");
-					linear.removeAllViews();
-					
-					return;
+					writeDriver(fd, 1);
 				}
 				else{
 					Log.d(null, "unmatched..");
-					return;
 				}
 			}
 		};
@@ -94,7 +116,7 @@ public class MainActivity2 extends Activity{
 				Log.d(null, "[DEBUG]row: " + String.valueOf(row) + "col: " + String.valueOf(col));
 				for(int i = 0; i < row; ++i){
 					for(int j = 0; j < col; ++j){
-						puzzle[i][j] = i * row + j+1;
+						puzzle[i][j] = i * col + j+1;
 					}
 				}
 				puzzle[row-1][col-1] = 0;
@@ -109,10 +131,35 @@ public class MainActivity2 extends Activity{
 		make.setOnClickListener(listener);
 	}
 	
+	class ReadThread extends Thread{
+		public void run(){
+			
+			while(true){
+				int ret = readDriver(fd);
+				if(ret == 1)
+					break;
+			}
+			
+			Log.d(null, "Timer ended!");
+			closeDriver(fd);
+			Intent intent=new Intent(MainActivity2.this, MainActivity.class);
+			startActivity(intent);
+			finish();
+		}
+	}
+	
 	public void genBtn(int row, int col){
+		Point size = new Point();
+		getWindowManager().getDefaultDisplay().getSize(size);
+		int screenWidth = size.x;
+		int screenHeight = size.y;
+		Log.d(null, "Screensize: " + String.valueOf(screenWidth) + " " + String.valueOf(screenHeight));
 		grid = new GridLayout(MainActivity2.this);
 		grid.setColumnCount(col);
 		grid.setRowCount(row);
+		LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(screenHeight/col, 80);
+		LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+		grid.setLayoutParams(glp);
 		buttons = new Button[row][col];
 		for(int i = 0; i < row; ++i){
 			//puzzle_view[i] = new LinearLayout(MainActivity2.this);
@@ -124,8 +171,11 @@ public class MainActivity2 extends Activity{
 				else{
 					buttons[i][j].setText("");
 					buttons[i][j].setBackgroundColor(Color.BLACK);
+					
 				}
 				buttons[i][j].setOnClickListener(btn_change);
+				buttons[i][j].setGravity(Gravity.CENTER);
+				buttons[i][j].setLayoutParams(llp);
 				grid.addView(buttons[i][j]);
 			}
 		}
@@ -141,8 +191,18 @@ public class MainActivity2 extends Activity{
 		int cur_row = row-1;
 		int cur_col = col-1;
 		int next_row, next_col, tmp;
+		int cnt = 0;
+
+		Log.d(null, "original state:");
+		for(int i = 0; i<row; i++){
+			String s = "";
+			for(int j = 0; j<col; j++){
+				s += String.valueOf(puzzle[i][j]) + " ";
+			}
+			Log.d(null, s);
+		}
 		
-		for(int cnt = 0; cnt < 20; cnt++){
+		while(Puzzle.isMatched(puzzle) || cnt <= 20){
 			List<int[]> list = new ArrayList<int[]>();
 			if(cur_row > 0)
 				list.add(direction[0]);
@@ -162,7 +222,9 @@ public class MainActivity2 extends Activity{
 			
 			cur_row = next_row;
 			cur_col = next_col;
+			cnt++;
 		}
+		Log.d(null, "shuffle: " + String.valueOf(cnt));
 	}
 }
 
