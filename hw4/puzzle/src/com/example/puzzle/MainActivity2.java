@@ -174,7 +174,6 @@ public class MainActivity2 extends Activity{
 					
 				}
 				buttons[i][j].setOnClickListener(btn_change);
-				buttons[i][j].setGravity(Gravity.CENTER);
 				buttons[i][j].setLayoutParams(llp);
 				grid.addView(buttons[i][j]);
 			}
@@ -202,7 +201,7 @@ public class MainActivity2 extends Activity{
 			Log.d(null, s);
 		}
 		
-		while(Puzzle.isMatched(puzzle) || cnt <= 20){
+		while(Puzzle.isMatched(puzzle) || cnt <= 50){
 			List<int[]> list = new ArrayList<int[]>();
 			if(cur_row > 0)
 				list.add(direction[0]);

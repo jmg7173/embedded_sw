@@ -29,7 +29,7 @@ void iom_unmapping(void){
 void iom_fpga_dot_write(int num){
     int length = 10;
     int i;
-    if(num >= 1 && num < 9){
+    if(num >= 0 && num < 10){
         for(i = 0; i<length; i++){
             outw(fpga_number[num][i], (unsigned int)(iom_fpga_dot_addr+i*2));
         }

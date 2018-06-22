@@ -234,6 +234,7 @@ static int driver_open(struct inode *inode, struct file *file){
     ret = request_irq(irq, inter_timer_start, IRQF_TRIGGER_FALLING, "voldown", 0);
 
     init_devices();
+    iom_fpga_dot_write(count % 10);
     return 0;
 }
 
